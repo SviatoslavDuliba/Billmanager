@@ -2,7 +2,7 @@ import Foundation
 import UserNotifications
 
 extension Bill {
-    
+    //MARK: - Properties
     static let notificationCategoryID = "ReminderNotifications"
     
     private static let dateFormatter: DateFormatter = {
@@ -30,7 +30,7 @@ extension Bill {
         
         return dateString
     }
-        
+     //MARK: - Methods
     mutating func removeReminder() {
         if let id = notificationID {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])

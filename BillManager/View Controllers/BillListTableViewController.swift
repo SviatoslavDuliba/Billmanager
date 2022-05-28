@@ -1,8 +1,3 @@
-//
-//  BillListTableViewController.swift
-//  BillManager
-//
-
 import UIKit
 import CoreData
 
@@ -14,6 +9,7 @@ private class SwipeableDataSource: UITableViewDiffableDataSource<Int, Bill> {
 
 class BillListTableViewController: UITableViewController {
     
+    //MARK: - Properties
     private let dateFormatter: DateFormatter = {
         let result = DateFormatter()
         result.dateStyle = .short
@@ -22,6 +18,7 @@ class BillListTableViewController: UITableViewController {
     
     fileprivate var dataSource: SwipeableDataSource!
 
+    //MARK: - Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.leftBarButtonItem = editButtonItem
@@ -46,6 +43,7 @@ class BillListTableViewController: UITableViewController {
         }
     }
     
+    //MARK: - Methods
     func updateSnapshot() {
         var snapshot = NSDiffableDataSourceSnapshot<Int, Bill>()
         snapshot.appendSections([0])
@@ -77,5 +75,6 @@ class BillListTableViewController: UITableViewController {
         }
     }
     
+    //MARK: - Actions
     @IBAction func unwindFromBillDetail(segue: UIStoryboardSegue) { }
 }
