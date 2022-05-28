@@ -1,11 +1,8 @@
-//
-//  BillDetailTableViewController.swift
-//  BillManager
-//
-
 import UIKit
 
 class BillDetailTableViewController: UITableViewController, UITextFieldDelegate {
+    
+    //MARK: - Properties
     private let datePickerHeight = CGFloat(216)
     private let dueDateCellIndexPath = IndexPath(row: 2, section: 0)
     private let remindDateCellIndexPath = IndexPath(row:0, section: 1)
@@ -29,6 +26,21 @@ class BillDetailTableViewController: UITableViewController, UITextFieldDelegate 
         return dateformatter
     }()
     
+    var isDueDatePickerShown: Bool = false {
+            didSet {
+                dueDatePicker.isHidden = !isDueDatePickerShown
+            }
+        }
+        var isRemindDatePickerShown: Bool = false {
+            didSet {
+                remindDatePicker.isHidden = !isRemindDatePickerShown
+            }
+        }
+        
+        var bill: Bill?
+        var paidDate: Date?
+    
+    //MARK: - Outlets
     @IBOutlet var payeeTextField: UITextField!
     @IBOutlet var amountTextField: UITextField!
     @IBOutlet var dueDateLabel: UILabel!
@@ -42,20 +54,16 @@ class BillDetailTableViewController: UITableViewController, UITextFieldDelegate 
     @IBOutlet var paidSwitch: UISwitch!
     @IBOutlet var paidDateLabel: UILabel!
     
-    var isDueDatePickerShown: Bool = false {
-        didSet {
-            dueDatePicker.isHidden = !isDueDatePickerShown
-        }
-    }
-    var isRemindDatePickerShown: Bool = false {
-        didSet {
-            remindDatePicker.isHidden = !isRemindDatePickerShown
-        }
+    //MARK: - Actions
+    @IBAction func dueDatePickerValueChanged(_ sender: UIDatePicker) {
+        updateDueDateUI()
     }
     
-    var bill: Bill?
-    var paidDate: Date?
+    @IBAction func remindDatePickerValueChanged(_ sender: UIDatePicker) {
+        updateRemindUI()
+    }
     
+    //MARK: - Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
@@ -90,6 +98,7 @@ class BillDetailTableViewController: UITableViewController, UITextFieldDelegate 
         }
     }
     
+    //MARK: - Methods
     @objc func dismissKeyboard() {
         view.endEditing(true)
     }
@@ -205,15 +214,6 @@ class BillDetailTableViewController: UITableViewController, UITextFieldDelegate 
         
         present(alert, animated: true, completion: nil)
     }
-    
-    @IBAction func dueDatePickerValueChanged(_ sender: UIDatePicker) {
-        updateDueDateUI()
-    }
-    
-    @IBAction func remindDatePickerValueChanged(_ sender: UIDatePicker) {
-        updateRemindUI()
-    }
-    
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         if textField == amountTextField {

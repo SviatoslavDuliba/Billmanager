@@ -7,11 +7,30 @@ import Foundation
 import UIKit
 
 class Database {
-    
+    //MARK: - Properties
     static let billUpdatedNotification = NSNotification.Name("com.apple.BillManager.billUpdated")
-
     static let shared = Database()
+    
+    private var _billsOptional: [UUID:Bill]?
+        private var _billsLookup: [UUID:Bill] {
+            get {
+                if _billsOptional == nil {
+                    _billsOptional = loadBills() ?? [:]
+                }
+                
+                return _billsOptional!
+            }
+            set {
+                _billsOptional = newValue
+            }
+        }
         
+        var bills: [Bill] {
+            get {
+                return Array(_billsLookup.values.sorted(by: <))
+            }
+        }
+    //MARK: - Methods
     private func loadBills() -> [UUID:Bill]? {
         var bills = [UUID:Bill]()
         
@@ -38,26 +57,6 @@ class Database {
             try fileData.write(to: storageURL)
         } catch {
             fatalError("There was a problem saving bills. Error: \(error)")
-        }
-    }
-    
-    private var _billsOptional: [UUID:Bill]?
-    private var _billsLookup: [UUID:Bill] {
-        get {
-            if _billsOptional == nil {
-                _billsOptional = loadBills() ?? [:]
-            }
-            
-            return _billsOptional!
-        }
-        set {
-            _billsOptional = newValue
-        }
-    }
-    
-    var bills: [Bill] {
-        get {
-            return Array(_billsLookup.values.sorted(by: <))
         }
     }
     
@@ -91,7 +90,7 @@ class Database {
         return keyValue.value
         }
 }
-
+//MARK: - Extension
 extension Bill: Comparable {
     static func < (lhs: Bill, rhs: Bill) -> Bool {
         func compareAmounts(_ l: Bill, _ r: Bill) -> Bool {

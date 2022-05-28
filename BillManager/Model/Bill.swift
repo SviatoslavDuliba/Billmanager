@@ -1,7 +1,7 @@
 // BillManager
 
 import Foundation
-
+//MARK: - Structure
 struct Bill: Codable {
     var id =  UUID()
     var amount: Double?
@@ -11,7 +11,7 @@ struct Bill: Codable {
     var payee: String?
     var remindDate: Date?
 }
-
+//MARK: - Extension
 extension Bill: Hashable {
 //    static func ==(_ lhs: Bill, _ rhs: Bill) -> Bool {
 //        return lhs.id == rhs.id
