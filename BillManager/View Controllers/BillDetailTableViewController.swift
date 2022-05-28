@@ -10,6 +10,25 @@ class BillDetailTableViewController: UITableViewController, UITextFieldDelegate 
     private let dueDateCellIndexPath = IndexPath(row: 2, section: 0)
     private let remindDateCellIndexPath = IndexPath(row:0, section: 1)
     
+    private let dueDateFormatter: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        return dateFormatter
+    }()
+    
+    private let remindDateFormatter: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .short
+        return dateFormatter
+    }()
+    
+    private let paidDateFormatter: DateFormatter = {
+        let dateformatter = DateFormatter()
+        dateformatter.dateStyle = .medium
+        return dateformatter
+    }()
+    
     @IBOutlet var payeeTextField: UITextField!
     @IBOutlet var amountTextField: UITextField!
     @IBOutlet var dueDateLabel: UILabel!
@@ -53,7 +72,7 @@ class BillDetailTableViewController: UITableViewController, UITextFieldDelegate 
         if let bill = bill {
             title = "Edit Bill"
             payeeTextField.text = bill.payee
-            amountTextField.text = String(format: "%@", arguments: [(bill.amount ?? 0).formatted(.number.precision(.fractionLength(2)))])
+            amountTextField.text = String(format: "%.2f", arguments: [bill.amount ?? 0])
             if let dueDate = bill.dueDate {
                 dueDatePicker.date = dueDate
             }
@@ -76,13 +95,13 @@ class BillDetailTableViewController: UITableViewController, UITextFieldDelegate 
     }
     
     func updateDueDateUI() {
-        dueDateLabel.text = dueDatePicker.date.formatted(date: .numeric, time: .omitted)
+        dueDateLabel.text = dueDateFormatter.string(from: dueDatePicker.date)
         remindDatePicker.maximumDate = dueDatePicker.date
     }
     
     func updateRemindUI() {
         if remindSwitch.isOn {
-            remindStatusLabel.text = remindDatePicker.date.formatted(date: .numeric, time: .shortened)
+            remindStatusLabel.text = remindDateFormatter.string(from: remindDatePicker.date)
         } else {
             remindStatusLabel.text = "No"
         }
@@ -91,7 +110,7 @@ class BillDetailTableViewController: UITableViewController, UITextFieldDelegate 
     func updatePaymentUI() {
         if paidSwitch.isOn {
             paidStatusLabel.text = "Yes"
-            paidDateLabel.text = Date().formatted(date: .abbreviated, time: .omitted)
+            paidDateLabel.text = paidDateFormatter.string(from: Date())
         } else {
             paidStatusLabel.text = "No"
             paidDateLabel.text = ""
@@ -158,7 +177,6 @@ class BillDetailTableViewController: UITableViewController, UITextFieldDelegate 
         }
     }
     
-    
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch (indexPath.section, indexPath.row) {
         case (dueDateCellIndexPath.section, dueDateCellIndexPath.row + 1):
@@ -177,7 +195,17 @@ class BillDetailTableViewController: UITableViewController, UITextFieldDelegate 
             return 44
         }
     }
+    
+    func presentNeedAuthorizationAlert() {
+        let alert = UIAlertController(title: "Authorization Needed", message: "We can't set reminders for you without notification permissins. Pleas go to the IOS Settings app and grant us notification permissins if you wish  to make use of reminders.", preferredStyle: .alert)
         
+        let okAction = UIAlertAction(title: "Okay", style: .default, handler: nil)
+        
+        alert.addAction(okAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
     @IBAction func dueDatePickerValueChanged(_ sender: UIDatePicker) {
         updateDueDateUI()
     }
@@ -209,12 +237,16 @@ class BillDetailTableViewController: UITableViewController, UITextFieldDelegate 
         bill.paidDate = paidDate
         
         if remindSwitch.isOn {
-            bill.remindDate = remindDatePicker.date
+            bill.scheduleReminder(on: remindDatePicker.date) { (updateBill) in
+                if updateBill.notificationID == nil {
+                    self.presentNeedAuthorizationAlert()
+                }
+                Database.shared.updateAndSave(updateBill)
+            }
         } else {
-            bill.remindDate = nil
+            bill.removeReminder()
+            Database.shared.updateAndSave(bill)
         }
-        
-        Database.shared.updateAndSave(bill)
     }
     
     @objc func cancelButtonTapped() {

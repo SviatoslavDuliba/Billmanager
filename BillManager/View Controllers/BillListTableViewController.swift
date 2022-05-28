@@ -14,6 +14,12 @@ private class SwipeableDataSource: UITableViewDiffableDataSource<Int, Bill> {
 
 class BillListTableViewController: UITableViewController {
     
+    private let dateFormatter: DateFormatter = {
+        let result = DateFormatter()
+        result.dateStyle = .short
+        return result
+    }()
+    
     fileprivate var dataSource: SwipeableDataSource!
 
     override func viewDidLoad() {
@@ -25,10 +31,8 @@ class BillListTableViewController: UITableViewController {
             
             let bill = Database.shared.bills[indexPath.row]
             
-            var content = cell.defaultContentConfiguration()
-            content.text = bill.payee
-            content.secondaryText = String(format: "%@ - Due: %@", arguments: [(bill.amount ?? 0).formatted(.currency(code: "usd")), bill.formattedDueDate])
-            cell.contentConfiguration = content
+            cell.textLabel?.text = bill.payee
+            cell.detailTextLabel?.text = String(format: "$%.2f - Due: %@", arguments: [bill.amount ?? 0 , bill.formattedDueDate])
             
             return cell
         }
@@ -54,7 +58,6 @@ class BillListTableViewController: UITableViewController {
             guard let bill = self.dataSource.itemIdentifier(for: indexPath) else { return }
             Database.shared.delete(bill: bill)
             Database.shared.save()
-            self.updateSnapshot()
             completionHandler(true)
         }
         deleteAction.image = UIImage(systemName: "trash.fill")
